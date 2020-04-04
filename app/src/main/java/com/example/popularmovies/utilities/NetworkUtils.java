@@ -5,6 +5,8 @@ import android.util.Log;
 
 import com.example.popularmovies.BuildConfig;
 import com.example.popularmovies.model.Movie;
+import com.example.popularmovies.model.Review;
+import com.example.popularmovies.model.Trailer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -19,7 +21,8 @@ public class NetworkUtils {
     private static final String TAG = "NetworkUtils";
 
     private static final String BASE_API_URL ="https://api.themoviedb.org/3/movie/";
-
+    private static final String REVIEWS_PATH_NAME = "reviews";
+    private static final String TRAILERS_PATH_NAME = "videos";
 
     private static final String QUERY_PARAM_API_KEY = "api_key";
 
@@ -28,6 +31,20 @@ public class NetworkUtils {
         String json = getResponseFromHttpUrl(url);
 
         return JsonUtils.getMoviesFromJson(json);
+    }
+
+    public static List<Review> fetchReviews(int movieId) {
+        URL url = buildMovieDetailUrl(movieId, REVIEWS_PATH_NAME);
+        String json = getResponseFromHttpUrl(url);
+
+        return JsonUtils.getReviewsFromJson(json);
+    }
+
+    public static List<Trailer> fetchTrailers(int movieId) {
+        URL url = buildMovieDetailUrl(movieId, TRAILERS_PATH_NAME);
+        String json = getResponseFromHttpUrl(url);
+
+        return JsonUtils.getTrailersFromJson(json);
     }
 
     private static URL buildMovieListUrl(String sortOrder) {
@@ -42,6 +59,24 @@ public class NetworkUtils {
             url = new URL(builtUri.toString());
         } catch (MalformedURLException e) {
             Log.e(TAG, "buildMovieListUrl", e);
+        }
+
+        return url;
+    }
+
+    private static URL buildMovieDetailUrl(int movieId, String movieDetailType) {
+        Uri builtUri = Uri.parse(BASE_API_URL).buildUpon()
+                .appendPath(Integer.toString(movieId))
+                .appendPath(movieDetailType)
+                .appendQueryParameter(QUERY_PARAM_API_KEY, BuildConfig.API_KEY)
+                .build();
+
+        URL url = null;
+
+        try {
+            url = new URL(builtUri.toString());
+        } catch (MalformedURLException e) {
+            Log.e(TAG, "buildReviewListUrl", e);
         }
 
         return url;
