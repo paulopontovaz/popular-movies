@@ -3,6 +3,8 @@ package com.example.popularmovies;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.Loader;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -12,9 +14,12 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.example.popularmovies.database.AppDatabase;
 import com.example.popularmovies.model.Movie;
 import com.example.popularmovies.model.MovieDetailType;
 import com.example.popularmovies.model.Review;
@@ -27,9 +32,12 @@ import java.util.Locale;
 
 public class DetailsActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks {
     private static final String TAG = "DetailsActivity";
-    private Movie mMovie;
     private static final int TRAILER_LIST_LOADER_ID = 115;
     private static final int REVIEW_LIST_LOADER_ID = 539;
+
+    private Movie mMovie;
+    private boolean isFavorite = false;
+    private AppDatabase mDb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,9 +46,33 @@ public class DetailsActivity extends AppCompatActivity implements LoaderManager.
 
         Intent intent = getIntent();
         if (intent.hasExtra(Movie.MOVIE_EXTRA)) {
+            mDb = AppDatabase.getInstance(getApplicationContext());
             mMovie = intent.getParcelableExtra(Movie.MOVIE_EXTRA);
             fillUi();
+
+            DetailsViewModelFactory factory = new DetailsViewModelFactory(mDb, mMovie.getId());
+            final DetailsViewModel viewModel = new ViewModelProvider(this, factory).get(DetailsViewModel.class);
+            viewModel.getCount().observe(this, new Observer<Integer>() {
+                @Override
+                public void onChanged(Integer count) {
+                    isFavorite = count > 0;
+                    updateFavoriteImageResource();
+                }
+            });
         }
+    }
+
+    public void setFavorite(View view) {
+        AppExecutors.getInstance().getDiskIO().execute(new Runnable() {
+            @Override
+            public void run() {
+                if (isFavorite) {
+                    mDb.favoriteMovieDao().deleteFavorite(mMovie);
+                } else {
+                    mDb.favoriteMovieDao().insertFavorite(mMovie);
+                }
+            }
+        });
     }
 
     private void fillUi() {
@@ -49,6 +81,7 @@ public class DetailsActivity extends AppCompatActivity implements LoaderManager.
         TextView synopsisTextView = findViewById(R.id.tv_synopsis);
         TextView ratingTextView = findViewById(R.id.tv_user_rating);
         TextView releaseDateTextView = findViewById(R.id.tv_release_date);
+        ImageButton setFavoriteImageButton = findViewById(R.id.ib_set_favorite);
 
         Picasso.get()
                 .load(Uri.parse(mMovie.getImagePath()))
@@ -59,6 +92,10 @@ public class DetailsActivity extends AppCompatActivity implements LoaderManager.
         synopsisTextView.setText(mMovie.getSynopsis());
         ratingTextView.setText(String.format(Locale.getDefault(), "%.1f", mMovie.getUserRating()));
         releaseDateTextView.setText(mMovie.getReleaseDate());
+
+        if (isFavorite) {
+            setFavoriteImageButton.setImageResource(R.drawable.ic_star);
+        }
 
         LoaderManager loaderManager = LoaderManager.getInstance(this);
         loaderManager.initLoader(TRAILER_LIST_LOADER_ID, null, this);
@@ -130,6 +167,16 @@ public class DetailsActivity extends AppCompatActivity implements LoaderManager.
                 break;
             default:
                 break;
+        }
+    }
+
+    private void updateFavoriteImageResource() {
+        ImageButton setFavoriteImageButton = findViewById(R.id.ib_set_favorite);
+
+        if (isFavorite) {
+            setFavoriteImageButton.setImageResource(R.drawable.ic_star);
+        } else {
+            setFavoriteImageButton.setImageResource(R.drawable.ic_star_border);
         }
     }
 }

@@ -13,7 +13,6 @@ import com.example.popularmovies.model.Review;
 import java.util.List;
 
 public class ReviewsAdapter extends RecyclerView.Adapter<ReviewsAdapter.ReviewViewHolder> {
-    private static final String TAG = "ReviewsAdapter";
 
     private List<Review> mReviewsList;
 

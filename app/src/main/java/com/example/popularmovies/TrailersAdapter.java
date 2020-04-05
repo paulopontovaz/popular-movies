@@ -19,7 +19,6 @@ import com.example.popularmovies.model.Trailer;
 import java.util.List;
 
 public class TrailersAdapter extends RecyclerView.Adapter<TrailersAdapter.TrailerViewHolder> {
-    private static final String TAG = "TrailersAdapter";
 
     private Context mContext;
     private List<Trailer> mTrailersList;

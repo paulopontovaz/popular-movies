@@ -12,8 +12,6 @@ import com.example.popularmovies.utilities.NetworkUtils;
 import java.util.List;
 
 public class MovieLoader extends AsyncTaskLoader<List<Movie>> {
-    private static final String TAG = "MovieLoader";
-
     private String mSortOrder;
 
     MovieLoader(@NonNull Context context, String mSortOrder) {

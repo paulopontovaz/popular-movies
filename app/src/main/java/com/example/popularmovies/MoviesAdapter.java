@@ -16,7 +16,6 @@ import com.squareup.picasso.Picasso;
 import java.util.List;
 
 public class MoviesAdapter extends RecyclerView.Adapter<MoviesAdapter.MovieViewHolder> {
-    private static final String TAG = "MoviesAdapter";
 
     private List<Movie> mMoviesList;
     final private ListItemClickListener mListItemClickListener;

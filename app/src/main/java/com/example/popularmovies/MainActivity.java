@@ -3,6 +3,8 @@ package com.example.popularmovies;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.Observer;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.loader.app.LoaderManager;
 import androidx.loader.content.Loader;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -10,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Spinner;
@@ -25,8 +28,10 @@ public class MainActivity
 
     private static final String TAG = "MainActivity";
     private static final int LOADER_ID = 1;
+    private static final int FAVORITE_OPTION_INDEX = 2;
 
     private Spinner mSortOrderSpinner;
+    private List<Movie> mFavoriteMovies = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,6 +40,7 @@ public class MainActivity
 
         mSortOrderSpinner = findViewById(R.id.spinner_sort_order);
         mSortOrderSpinner.setOnItemSelectedListener(this);
+        setupViewModel();
     }
 
     private void updateList(List<Movie> newMovieList) {
@@ -74,11 +80,26 @@ public class MainActivity
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        LoaderManager loaderManager = LoaderManager.getInstance(this);
-        loaderManager.initLoader(LOADER_ID, null, this);
+        if (position == FAVORITE_OPTION_INDEX) {
+            Log.d(TAG, "onItemSelected: Favorite selected");
+            updateList(mFavoriteMovies);
+        } else {
+            LoaderManager loaderManager = LoaderManager.getInstance(this);
+            loaderManager.initLoader(LOADER_ID, null, this);
+        }
     }
 
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
+    }
+
+    private void setupViewModel() {
+        MainViewModel viewModel = new ViewModelProvider(this).get(MainViewModel.class);
+        viewModel.getMovies().observe(this, new Observer<List<Movie>>() {
+            @Override
+            public void onChanged(List<Movie> movies) {
+                mFavoriteMovies = movies;
+            }
+        });
     }
 }

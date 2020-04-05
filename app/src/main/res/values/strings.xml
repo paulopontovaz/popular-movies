@@ -9,4 +9,5 @@
     <string name="watch_now">Watch Now</string>
     <string name="trailers_label">Trailers</string>
     <string name="reviews_label">Reviews</string>
+    <string name="set_movie_as_favorite">Set movie as favorite</string>
 </resources>
